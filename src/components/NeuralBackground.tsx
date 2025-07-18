@@ -21,8 +21,8 @@ export function NeuralBackground() {
       <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <radialGradient id="nodeGradient" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="hsl(var(--neural))" stopOpacity="0.8" />
-            <stop offset="100%" stopColor="hsl(var(--neural))" stopOpacity="0" />
+            <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.8" />
+            <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
           </radialGradient>
         </defs>
         
@@ -40,7 +40,7 @@ export function NeuralBackground() {
                   y1={`${node.y}%`}
                   x2={`${otherNode.x}%`}
                   y2={`${otherNode.y}%`}
-                  stroke="hsl(var(--neural))"
+                  stroke="hsl(var(--primary))"
                   strokeWidth="1"
                   strokeOpacity={0.2}
                   className="animate-pulse"
@@ -59,7 +59,7 @@ export function NeuralBackground() {
             cy={`${node.y}%`}
             r="2"
             fill="url(#nodeGradient)"
-            className="neural-pulse"
+            className="animate-pulse"
             style={{ animationDelay: `${node.delay}s` }}
           />
         ))}

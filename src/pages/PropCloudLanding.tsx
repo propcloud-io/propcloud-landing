@@ -6,6 +6,8 @@ import conversationWaves from "@/assets/conversation-waves.jpg";
 import dataParticles from "@/assets/data-particles.jpg";
 
 export default function PropCloudLanding() {
+  console.log("PropCloudLanding component rendering...");
+  
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Hero Section */}
@@ -127,7 +129,7 @@ export default function PropCloudLanding() {
         </div>
 
         {/* Background Visual */}
-        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1/3 opacity-3 -z-10">
+        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1/3 opacity-5 -z-10">
           <img 
             src={dataParticles}
             alt=""
