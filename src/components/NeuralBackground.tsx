@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 
 export function NeuralBackground() {
@@ -5,7 +6,7 @@ export function NeuralBackground() {
 
   useEffect(() => {
     const generateNodes = () => {
-      const newNodes = Array.from({ length: 20 }, (_, i) => ({
+      const newNodes = Array.from({ length: 30 }, (_, i) => ({
         x: Math.random() * 100,
         y: Math.random() * 100,
         delay: Math.random() * 3
@@ -21,9 +22,14 @@ export function NeuralBackground() {
       <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <radialGradient id="nodeGradient" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.8" />
-            <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
+            <stop offset="0%" stopColor="hsl(180, 84%, 25%)" stopOpacity="0.8" />
+            <stop offset="100%" stopColor="hsl(180, 84%, 25%)" stopOpacity="0" />
           </radialGradient>
+          <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="hsl(180, 84%, 25%)" stopOpacity="0.6" />
+            <stop offset="50%" stopColor="hsl(172, 84%, 30%)" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="hsl(180, 84%, 25%)" stopOpacity="0.2" />
+          </linearGradient>
         </defs>
         
         {/* Connection lines */}
@@ -40,10 +46,10 @@ export function NeuralBackground() {
                   y1={`${node.y}%`}
                   x2={`${otherNode.x}%`}
                   y2={`${otherNode.y}%`}
-                  stroke="hsl(var(--primary))"
-                  strokeWidth="1"
-                  strokeOpacity={0.2}
+                  stroke="url(#lineGradient)"
+                  strokeWidth="1.5"
                   className="animate-pulse"
+                  style={{ animationDelay: `${Math.random() * 2}s` }}
                 />
               );
             }
@@ -57,10 +63,24 @@ export function NeuralBackground() {
             key={i}
             cx={`${node.x}%`}
             cy={`${node.y}%`}
-            r="2"
+            r="3"
             fill="url(#nodeGradient)"
             className="animate-pulse"
             style={{ animationDelay: `${node.delay}s` }}
+          />
+        ))}
+        
+        {/* Larger accent nodes */}
+        {nodes.filter((_, i) => i % 8 === 0).map((node, i) => (
+          <circle
+            key={`accent-${i}`}
+            cx={`${node.x}%`}
+            cy={`${node.y}%`}
+            r="5"
+            fill="hsl(180, 84%, 25%)"
+            fillOpacity="0.3"
+            className="animate-pulse"
+            style={{ animationDelay: `${node.delay + 1}s` }}
           />
         ))}
       </svg>
