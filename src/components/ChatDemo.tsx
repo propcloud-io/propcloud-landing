@@ -34,19 +34,23 @@ export function ChatDemo() {
   const example = chatExamples[currentExample];
 
   return (
-    <div className={`max-w-2xl mx-auto transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-      <div className="space-y-4 p-6 rounded-2xl bg-card/30 backdrop-blur-sm border border-border">
-        <div className="chat-message chat-user">
-          <p className="text-sm">{example.user}</p>
+    <div className={`max-w-3xl mx-auto transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+      <div className="space-y-6 p-8 rounded-2xl bg-card/50 backdrop-blur-sm border border-border">
+        <div className="flex justify-end">
+          <div className="bg-secondary rounded-2xl px-6 py-4 max-w-[85%]">
+            <p className="text-foreground">{example.user}</p>
+          </div>
         </div>
         
-        <div className="chat-message chat-ai">
-          <div className="flex items-start space-x-3">
-            <div className="w-6 h-6 rounded-full bg-gradient-neural flex items-center justify-center mt-0.5">
-              <div className="w-2 h-2 rounded-full bg-primary-foreground neural-pulse" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm whitespace-pre-line">{example.ai}</p>
+        <div className="flex justify-start">
+          <div className="bg-primary/10 border border-primary/20 rounded-2xl px-6 py-4 max-w-[85%]">
+            <div className="flex items-start space-x-3">
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center mt-1 flex-shrink-0">
+                <div className="w-3 h-3 rounded-full bg-primary-foreground animate-pulse" />
+              </div>
+              <div className="flex-1">
+                <p className="text-foreground whitespace-pre-line leading-relaxed">{example.ai}</p>
+              </div>
             </div>
           </div>
         </div>

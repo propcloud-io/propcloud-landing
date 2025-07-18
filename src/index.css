@@ -8,53 +8,40 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 220 27% 4%;
+    --background: 8 12% 6%;
     --foreground: 0 0% 98%;
 
-    --card: 220 20% 6%;
-    --card-foreground: 0 0% 98%;
+    --card: 8 12% 8%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 220 20% 6%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 8 12% 8%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 177 70% 55%;
-    --primary-foreground: 220 27% 4%;
+    --primary: 142 76% 58%;
+    --primary-foreground: 8 12% 6%;
 
-    --secondary: 220 15% 12%;
+    --secondary: 8 8% 14%;
     --secondary-foreground: 0 0% 85%;
 
-    --muted: 220 15% 12%;
+    --muted: 8 8% 14%;
     --muted-foreground: 0 0% 60%;
 
-    --accent: 290 90% 65%;
-    --accent-foreground: 220 27% 4%;
+    --accent: 262 83% 65%;
+    --accent-foreground: 8 12% 6%;
 
     --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 220 15% 15%;
-    --input: 220 15% 15%;
-    --ring: 177 70% 55%;
+    --border: 8 8% 18%;
+    --input: 8 8% 18%;
+    --ring: 142 76% 58%;
 
     --radius: 0.75rem;
 
-    /* PropCloud Brand Colors */
-    --neural: 177 70% 55%;
-    --neural-glow: 177 80% 70%;
-    --vision: 290 90% 65%;
-    --vision-glow: 290 95% 80%;
-    
-    /* Gradients */
-    --gradient-neural: linear-gradient(135deg, hsl(var(--neural)), hsl(var(--neural-glow)));
-    --gradient-vision: linear-gradient(135deg, hsl(var(--vision)), hsl(var(--vision-glow)));
-    --gradient-hero: linear-gradient(135deg, hsl(var(--neural) / 0.1), hsl(var(--vision) / 0.1));
-    
-    /* Glows */
-    --glow-neural: 0 0 40px hsl(var(--neural) / 0.3);
-    --glow-vision: 0 0 40px hsl(var(--vision) / 0.3);
-    
-    /* Animations */
-    --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Subtle effects only */
+    --glow-primary: 0 4px 20px hsl(var(--primary) / 0.15);
+    --glow-accent: 0 4px 20px hsl(var(--accent) / 0.15);
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     --sidebar-background: 0 0% 98%;
 
@@ -123,53 +110,25 @@ All colors MUST be HSL.
 }
 
 @layer utilities {
-  /* Neural Network Animation */
-  .neural-pulse {
-    animation: neural-pulse 3s ease-in-out infinite;
+  .glow-primary {
+    box-shadow: var(--glow-primary);
   }
   
-  .neural-glow {
-    box-shadow: var(--glow-neural);
+  .glow-accent {
+    box-shadow: var(--glow-accent);
   }
   
-  .vision-glow {
-    box-shadow: var(--glow-vision);
+  .text-gradient-primary {
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary)) 60%, hsl(var(--accent)));
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
   
-  /* Gradient Backgrounds */
-  .bg-gradient-neural {
-    background: var(--gradient-neural);
-  }
-  
-  .bg-gradient-vision {
-    background: var(--gradient-vision);
-  }
-  
-  .bg-gradient-hero {
-    background: var(--gradient-hero);
-  }
-  
-  /* Chat Interface */
-  .chat-message {
-    @apply rounded-xl px-4 py-3 max-w-[80%] backdrop-blur-sm;
-  }
-  
-  .chat-user {
-    @apply bg-secondary/50 ml-auto;
-  }
-  
-  .chat-ai {
-    @apply bg-primary/10 border border-primary/20;
-  }
-}
-
-@keyframes neural-pulse {
-  0%, 100% {
-    opacity: 0.4;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.05);
+  .text-gradient-accent {
+    background: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent)) 60%, hsl(var(--primary)));
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 }

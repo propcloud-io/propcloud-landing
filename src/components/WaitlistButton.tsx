@@ -17,14 +17,13 @@ export function WaitlistButton({ className, size = "default" }: WaitlistButtonPr
       onClick={handleWaitlistClick}
       size={size}
       className={cn(
-        "bg-gradient-neural hover:neural-glow transition-all duration-500 group font-semibold",
-        "hover:scale-105 active:scale-95",
+        "bg-primary hover:bg-primary/90 text-primary-foreground font-semibold transition-all duration-300",
+        "hover:scale-105 active:scale-95 glow-primary",
         size === "lg" && "text-lg px-8 py-6 h-auto",
         className
       )}
     >
-      <span className="relative z-10">Join the Private Waitlist</span>
-      <div className="absolute inset-0 bg-gradient-vision opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-md" />
+      Join the Private Waitlist
     </Button>
   );
 }
