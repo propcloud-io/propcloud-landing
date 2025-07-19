@@ -33,6 +33,24 @@ export function WaitlistForm({ onSuccess, size = "default", className = "" }: Wa
     }
   };
 
+  const sendWelcomeEmail = async (email: string) => {
+    try {
+      const { error } = await supabase.functions.invoke('send-welcome-email', {
+        body: { email }
+      });
+
+      if (error) {
+        console.error('Error sending welcome email:', error);
+        // Don't throw - we don't want email sending to block the signup
+      } else {
+        console.log('Welcome email sent successfully');
+      }
+    } catch (error) {
+      console.error('Error invoking welcome email function:', error);
+      // Don't throw - we don't want email sending to block the signup
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -75,6 +93,10 @@ export function WaitlistForm({ onSuccess, size = "default", className = "" }: Wa
       }
 
       console.log('Waitlist signup successful for:', email);
+      
+      // Send welcome email (non-blocking)
+      sendWelcomeEmail(email.toLowerCase());
+      
       onSuccess();
       setEmail("");
       
