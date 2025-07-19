@@ -3,3 +3,6 @@ project_id = "lvmleyuyqavunvmeirze"
 
 [functions.send-waitlist-welcome]
 verify_jwt = false
+
+[functions.chat-ai]
+verify_jwt = false
