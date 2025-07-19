@@ -3,7 +3,6 @@ import { ThankYouModal } from "@/components/ThankYouModal";
 import { SEOHead } from "@/components/SEOHead";
 import { ChatDemo } from "@/components/ChatDemo";
 import { NeuralBackground } from "@/components/NeuralBackground";
-import { Logo } from "@/components/Logo";
 import { useWaitlist } from "@/hooks/useWaitlist";
 import { Analytics, trackPageView } from "@/components/Analytics";
 import { useEffect } from "react";
@@ -59,9 +58,12 @@ export default function PropCloudLanding() {
           </div>
 
           <div className="relative z-10 text-center max-w-7xl mx-auto px-4 sm:px-6">
-            {/* Logo/Brand */}
+            {/* Brand Name */}
             <div className="mb-8 sm:mb-12">
-              <Logo size="lg" className="justify-center" />
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-wider">
+                <span className="text-primary">PROP</span>
+                <span className="text-white">CLOUD</span>
+              </h1>
               <div className="w-20 h-1 bg-primary mx-auto rounded-full opacity-60 mt-4" />
             </div>
 
@@ -78,7 +80,7 @@ export default function PropCloudLanding() {
 
             {/* Subheadline */}
             <p className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-12 sm:mb-16 max-w-4xl mx-auto leading-relaxed px-4">
-              Meet your AI co-pilot for STR investing. Ask complex questions, get instant insights. 
+              Meet your AI co-pilot for Short Term Rentals (STR) investing. Ask complex questions, get instant insights. 
               No dashboards. No spreadsheets. Just simple, intelligent conversations.
             </p>
 
@@ -211,7 +213,7 @@ export default function PropCloudLanding() {
                 <span className="bg-gradient-to-r from-primary to-teal-400 bg-clip-text text-transparent"> Real Investors</span>
               </h3>
               <p className="text-lg sm:text-xl text-gray-300 max-w-3xl mx-auto">
-                Every feature designed by real estate professionals who understand your challenges
+                Every feature designed by real estate professionals who understand your Short Term Rental challenges
               </p>
             </div>
 
@@ -338,11 +340,14 @@ export default function PropCloudLanding() {
         <footer className="py-12 sm:py-16 px-4 sm:px-6 border-t border-gray-700/50 bg-gray-900">
           <div className="max-w-7xl mx-auto text-center">
             <div className="mb-6 sm:mb-8">
-              <Logo size="md" className="justify-center" />
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-wider">
+                <span className="text-primary">PROP</span>
+                <span className="text-white">CLOUD</span>
+              </h1>
               <div className="w-12 h-1 bg-primary mx-auto rounded-full opacity-60 mt-2" />
             </div>
             <p className="text-gray-400 text-base sm:text-lg mb-4">
-              Building the future of real estate investment, one conversation at a time.
+              Building the future of Short Term Rental investment, one conversation at a time.
             </p>
             <div className="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-4 text-gray-400 mb-4">
               <div className="flex items-center">
