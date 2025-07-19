@@ -1,13 +1,13 @@
-
 import { WaitlistForm } from "@/components/WaitlistForm";
 import { ThankYouModal } from "@/components/ThankYouModal";
 import { SEOHead } from "@/components/SEOHead";
 import { ChatDemo } from "@/components/ChatDemo";
 import { NeuralBackground } from "@/components/NeuralBackground";
+import { Logo } from "@/components/Logo";
 import { useWaitlist } from "@/hooks/useWaitlist";
 import { Analytics, trackPageView } from "@/components/Analytics";
 import { useEffect } from "react";
-import { TrendingUp, Brain, Zap, Shield, Target, Users } from "lucide-react";
+import { TrendingUp, Brain, Zap, Shield, Target, Users, Mail } from "lucide-react";
 
 export default function PropCloudLanding() {
   const { showThankYou, handleWaitlistSuccess, closeThankYou } = useWaitlist();
@@ -61,11 +61,8 @@ export default function PropCloudLanding() {
           <div className="relative z-10 text-center max-w-7xl mx-auto px-4 sm:px-6">
             {/* Logo/Brand */}
             <div className="mb-8 sm:mb-12">
-              <h1 className="text-3xl sm:text-4xl font-bold tracking-wider mb-4">
-                <span className="text-primary">PROP</span>
-                <span className="text-white">CLOUD</span>
-              </h1>
-              <div className="w-20 h-1 bg-primary mx-auto rounded-full opacity-60" />
+              <Logo size="lg" className="justify-center" />
+              <div className="w-20 h-1 bg-primary mx-auto rounded-full opacity-60 mt-4" />
             </div>
 
             {/* Main Headline */}
@@ -341,17 +338,22 @@ export default function PropCloudLanding() {
         <footer className="py-12 sm:py-16 px-4 sm:px-6 border-t border-gray-700/50 bg-gray-900">
           <div className="max-w-7xl mx-auto text-center">
             <div className="mb-6 sm:mb-8">
-              <h4 className="text-xl sm:text-2xl font-bold">
-                <span className="text-primary">PROP</span>
-                <span className="text-white">CLOUD</span>
-              </h4>
+              <Logo size="md" className="justify-center" />
               <div className="w-12 h-1 bg-primary mx-auto rounded-full opacity-60 mt-2" />
             </div>
             <p className="text-gray-400 text-base sm:text-lg mb-4">
               Building the future of real estate investment, one conversation at a time.
             </p>
+            <div className="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-4 text-gray-400 mb-4">
+              <div className="flex items-center">
+                <Mail className="w-4 h-4 mr-2" />
+                <a href="mailto:contact@propcloud.io" className="hover:text-primary transition-colors">
+                  contact@propcloud.io
+                </a>
+              </div>
+            </div>
             <p className="text-gray-500 text-sm">
-              © 2024 PropCloud. All rights reserved. | Built by real estate professionals for real estate professionals.
+              © 2025 PropCloud Inc. All rights reserved. | Built by real estate professionals for real estate professionals.
             </p>
           </div>
         </footer>
