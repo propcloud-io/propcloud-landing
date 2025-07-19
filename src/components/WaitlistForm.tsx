@@ -35,15 +35,21 @@ export function WaitlistForm({ onSuccess, size = "default", className = "" }: Wa
 
   const sendWelcomeEmail = async (email: string) => {
     try {
-      const { error } = await supabase.functions.invoke('send-welcome-email', {
+      console.log('Attempting to send welcome email to:', email);
+      const { data, error } = await supabase.functions.invoke('send-welcome-email', {
         body: { email }
       });
 
       if (error) {
         console.error('Error sending welcome email:', error);
         // Don't throw - we don't want email sending to block the signup
+        toast({
+          title: "Welcome email issue",
+          description: "You're on the waitlist, but there was an issue sending the welcome email. We'll be in touch soon!",
+          variant: "default",
+        });
       } else {
-        console.log('Welcome email sent successfully');
+        console.log('Welcome email sent successfully:', data);
       }
     } catch (error) {
       console.error('Error invoking welcome email function:', error);
@@ -95,7 +101,7 @@ export function WaitlistForm({ onSuccess, size = "default", className = "" }: Wa
       console.log('Waitlist signup successful for:', email);
       
       // Send welcome email (non-blocking)
-      sendWelcomeEmail(email.toLowerCase());
+      await sendWelcomeEmail(email.toLowerCase());
       
       onSuccess();
       setEmail("");
