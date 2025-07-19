@@ -58,10 +58,10 @@ export default function PropCloudLanding() {
             ))}
           </div>
 
-          <div className="relative z-10 text-center max-w-7xl mx-auto px-6">
+          <div className="relative z-10 text-center max-w-7xl mx-auto px-4 sm:px-6">
             {/* Logo/Brand */}
-            <div className="mb-12">
-              <h1 className="text-4xl font-bold tracking-wider mb-4">
+            <div className="mb-8 sm:mb-12">
+              <h1 className="text-3xl sm:text-4xl font-bold tracking-wider mb-4">
                 <span className="text-primary">PROP</span>
                 <span className="text-white">CLOUD</span>
               </h1>
@@ -69,7 +69,7 @@ export default function PropCloudLanding() {
             </div>
 
             {/* Main Headline */}
-            <h2 className="text-6xl md:text-7xl lg:text-8xl font-bold leading-tight mb-8">
+            <h2 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-tight mb-6 sm:mb-8">
               The Future of
               <br />
               <span className="bg-gradient-to-r from-primary via-teal-400 to-primary bg-clip-text text-transparent">
@@ -80,13 +80,13 @@ export default function PropCloudLanding() {
             </h2>
 
             {/* Subheadline */}
-            <p className="text-xl md:text-2xl text-gray-300 mb-16 max-w-4xl mx-auto leading-relaxed">
+            <p className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-12 sm:mb-16 max-w-4xl mx-auto leading-relaxed px-4">
               Meet your AI co-pilot for STR investing. Ask complex questions, get instant insights. 
               No dashboards. No spreadsheets. Just simple, intelligent conversations.
             </p>
 
             {/* Enhanced CTA */}
-            <div className="mb-8">
+            <div className="mb-8 px-4">
               <WaitlistForm 
                 onSuccess={handleWaitlistSuccess}
                 size="lg" 
@@ -95,7 +95,7 @@ export default function PropCloudLanding() {
             </div>
 
             {/* Trust Indicators */}
-            <div className="flex justify-center items-center space-x-8 text-sm text-gray-400 mb-8">
+            <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-8 text-sm text-gray-400 mb-8 px-4">
               <div className="flex items-center">
                 <Shield className="w-4 h-4 mr-2" />
                 <span>Built by Real Estate Pros</span>
@@ -111,7 +111,7 @@ export default function PropCloudLanding() {
             </div>
 
             {/* Scroll Indicator */}
-            <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2">
+            <div className="absolute bottom-8 sm:bottom-12 left-1/2 transform -translate-x-1/2">
               <div className="w-6 h-10 border-2 border-primary/40 rounded-full flex justify-center">
                 <div className="w-1 h-3 bg-primary rounded-full mt-2 animate-bounce" />
               </div>
@@ -120,10 +120,10 @@ export default function PropCloudLanding() {
         </section>
 
         {/* Problem Statement Section */}
-        <section className="py-32 px-6 relative bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
+        <section className="py-20 sm:py-32 px-4 sm:px-6 relative bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-20">
-              <h3 className="text-4xl md:text-6xl font-bold mb-8 leading-tight">
+            <div className="text-center mb-16 sm:mb-20">
+              <h3 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-6 sm:mb-8 leading-tight">
                 Stop Drowning in Data.
                 <br />
                 <span className="bg-gradient-to-r from-teal-400 via-primary to-teal-400 bg-clip-text text-transparent">
@@ -132,7 +132,7 @@ export default function PropCloudLanding() {
               </h3>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-12 items-center mb-20">
+            <div className="grid md:grid-cols-2 gap-8 sm:gap-12 items-center mb-16 sm:mb-20">
               <div className="space-y-6">
                 <div className="bg-red-900/20 backdrop-blur-sm rounded-2xl p-6 border border-red-500/30">
                   <h4 className="text-xl font-bold text-red-400 mb-3">The Current Reality</h4>
@@ -184,11 +184,11 @@ export default function PropCloudLanding() {
 
             {/* Vision Statement */}
             <div className="text-center">
-              <div className="bg-gradient-to-r from-gray-800/40 to-gray-700/40 backdrop-blur-sm rounded-2xl p-8 border border-primary/20 max-w-4xl mx-auto">
-                <p className="text-2xl md:text-3xl font-semibold text-white mb-4">
+              <div className="bg-gradient-to-r from-gray-800/40 to-gray-700/40 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-primary/20 max-w-4xl mx-auto">
+                <p className="text-xl sm:text-2xl md:text-3xl font-semibold text-white mb-4">
                   We believe there's a better way.
                 </p>
-                <p className="text-xl md:text-2xl text-gray-300 leading-relaxed">
+                <p className="text-lg sm:text-xl md:text-2xl text-gray-300 leading-relaxed">
                   PropCloud isn't another tool—it's a new way of working. 
                   Ask questions in plain English. Let our AI synthesize billions of data points 
                   into simple, actionable answers. It's about democratizing expert-level analysis 
@@ -206,20 +206,20 @@ export default function PropCloudLanding() {
         </section>
 
         {/* Features Section */}
-        <section className="py-32 px-6 bg-gradient-to-b from-gray-800 to-gray-900">
+        <section className="py-20 sm:py-32 px-4 sm:px-6 bg-gradient-to-b from-gray-800 to-gray-900">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-20">
-              <h3 className="text-4xl md:text-5xl font-bold mb-6">
+            <div className="text-center mb-16 sm:mb-20">
+              <h3 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6">
                 Built for
                 <span className="bg-gradient-to-r from-primary to-teal-400 bg-clip-text text-transparent"> Real Investors</span>
               </h3>
-              <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+              <p className="text-lg sm:text-xl text-gray-300 max-w-3xl mx-auto">
                 Every feature designed by real estate professionals who understand your challenges
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="group bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 border border-gray-700/50 hover:border-primary/30 transition-all duration-500 hover:scale-105">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+              <div className="group bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-gray-700/50 hover:border-primary/30 transition-all duration-500 hover:scale-105">
                 <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center mb-6 group-hover:bg-primary/30 transition-colors">
                   <Target className="w-6 h-6 text-primary" />
                 </div>
@@ -229,7 +229,7 @@ export default function PropCloudLanding() {
                 </p>
               </div>
 
-              <div className="group bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 border border-gray-700/50 hover:border-primary/30 transition-all duration-500 hover:scale-105">
+              <div className="group bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-gray-700/50 hover:border-primary/30 transition-all duration-500 hover:scale-105">
                 <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center mb-6 group-hover:bg-primary/30 transition-colors">
                   <TrendingUp className="w-6 h-6 text-primary" />
                 </div>
@@ -239,7 +239,7 @@ export default function PropCloudLanding() {
                 </p>
               </div>
 
-              <div className="group bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 border border-gray-700/50 hover:border-primary/30 transition-all duration-500 hover:scale-105">
+              <div className="group bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-gray-700/50 hover:border-primary/30 transition-all duration-500 hover:scale-105 sm:col-span-2 lg:col-span-1">
                 <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center mb-6 group-hover:bg-primary/30 transition-colors">
                   <Brain className="w-6 h-6 text-primary" />
                 </div>
@@ -253,14 +253,14 @@ export default function PropCloudLanding() {
         </section>
 
         {/* Chat Demo Section */}
-        <section className="py-32 px-6 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 relative">
+        <section className="py-20 sm:py-32 px-4 sm:px-6 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 relative">
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-20">
-              <h3 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-8 leading-tight">
+            <div className="text-center mb-16 sm:mb-20">
+              <h3 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold mb-6 sm:mb-8 leading-tight">
                 Imagine 
                 <span className="bg-gradient-to-r from-primary to-teal-400 bg-clip-text text-transparent"> Asking...</span>
               </h3>
-              <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+              <p className="text-lg sm:text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
                 Experience the power of conversational AI for real estate investment. 
                 See how complex analysis becomes as simple as asking a question.
               </p>
@@ -268,7 +268,7 @@ export default function PropCloudLanding() {
 
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-teal-400/20 rounded-3xl blur-xl" />
-              <div className="relative bg-gray-800/50 backdrop-blur-sm rounded-3xl border border-gray-700/50 p-8">
+              <div className="relative bg-gray-800/50 backdrop-blur-sm rounded-3xl border border-gray-700/50 p-4 sm:p-8">
                 <ChatDemo />
               </div>
             </div>
@@ -286,61 +286,10 @@ export default function PropCloudLanding() {
           </div>
         </section>
 
-        {/* Vision & Roadmap Section */}
-        <section className="py-32 px-6 bg-gradient-to-b from-gray-800 to-gray-900">
-          <div className="max-w-6xl mx-auto text-center">
-            <h3 className="text-4xl md:text-5xl font-bold mb-12 leading-tight">
-              Beyond STR Analysis:
-              <br />
-              <span className="bg-gradient-to-r from-teal-400 via-primary to-teal-400 bg-clip-text text-transparent">
-                The Complete Real Estate AI Suite
-              </span>
-            </h3>
-
-            <div className="grid md:grid-cols-3 gap-8 mb-16">
-              <div className="bg-gray-800/30 backdrop-blur-sm rounded-2xl p-8 border border-gray-700/50">
-                <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <span className="text-2xl font-bold text-primary">01</span>
-                </div>
-                <h4 className="text-xl font-bold mb-4 text-primary">PropCloud</h4>
-                <p className="text-gray-300">STR Investment AI Co-pilot</p>
-                <p className="text-sm text-gray-400 mt-2">Launching Q2 2024</p>
-              </div>
-
-              <div className="bg-gray-800/30 backdrop-blur-sm rounded-2xl p-8 border border-gray-700/50">
-                <div className="w-16 h-16 bg-teal-400/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <span className="text-2xl font-bold text-teal-400">02</span>
-                </div>
-                <h4 className="text-xl font-bold mb-4 text-teal-400">PropCore</h4>
-                <p className="text-gray-300">Autonomous Property Management</p>
-                <p className="text-sm text-gray-400 mt-2">Coming 2025</p>
-              </div>
-
-              <div className="bg-gray-800/30 backdrop-blur-sm rounded-2xl p-8 border border-gray-700/50">
-                <div className="w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <span className="text-2xl font-bold text-accent">03</span>
-                </div>
-                <h4 className="text-xl font-bold mb-4 text-accent">PropSense</h4>
-                <p className="text-gray-300">IoT Network & PropCapital</p>
-                <p className="text-sm text-gray-400 mt-2">Future Vision</p>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-r from-primary/10 to-teal-400/10 backdrop-blur-sm rounded-2xl p-8 border border-primary/30 max-w-4xl mx-auto">
-              <p className="text-2xl md:text-3xl font-bold text-white mb-4">
-                The future of real estate investment isn't in learning more software.
-              </p>
-              <p className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-teal-400 bg-clip-text text-transparent">
-                It's in having better conversations.
-              </p>
-            </div>
-          </div>
-        </section>
-
         {/* Final CTA Section */}
-        <section className="py-32 px-6 text-center relative overflow-hidden bg-gradient-to-t from-gray-900 via-gray-800 to-gray-900">
+        <section className="py-20 sm:py-32 px-4 sm:px-6 text-center relative overflow-hidden bg-gradient-to-t from-gray-900 via-gray-800 to-gray-900">
           <div className="max-w-5xl mx-auto relative z-10">
-            <h3 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-12 leading-tight">
+            <h3 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold mb-8 sm:mb-12 leading-tight">
               Be the First to Talk to
               <br />
               <span className="bg-gradient-to-r from-teal-400 via-primary to-teal-400 bg-clip-text text-transparent">
@@ -348,12 +297,12 @@ export default function PropCloudLanding() {
               </span>
             </h3>
             
-            <div className="bg-gray-800/30 backdrop-blur-sm rounded-2xl p-8 border border-primary/20 mb-12">
-              <p className="text-xl md:text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed mb-6">
+            <div className="bg-gray-800/30 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-primary/20 mb-8 sm:mb-12">
+              <p className="text-lg sm:text-xl md:text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed mb-6">
                 Waitlist members will get priority access and have a voice in shaping the future of PropCloud.
               </p>
               
-              <div className="flex justify-center items-center space-x-8 text-gray-400 mb-8">
+              <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-8 text-gray-400 mb-6 sm:mb-8">
                 <div className="flex items-center">
                   <Users className="w-5 h-5 mr-2" />
                   <span>Exclusive Community</span>
@@ -368,7 +317,7 @@ export default function PropCloudLanding() {
                 </div>
               </div>
               
-              <p className="text-lg md:text-xl text-gray-400 max-w-3xl mx-auto">
+              <p className="text-base sm:text-lg md:text-xl text-gray-400 max-w-3xl mx-auto">
                 Join the exclusive community of visionary investors who refuse to settle for status quo.
               </p>
             </div>
@@ -389,16 +338,16 @@ export default function PropCloudLanding() {
         </section>
 
         {/* Footer */}
-        <footer className="py-16 px-6 border-t border-gray-700/50 bg-gray-900">
+        <footer className="py-12 sm:py-16 px-4 sm:px-6 border-t border-gray-700/50 bg-gray-900">
           <div className="max-w-7xl mx-auto text-center">
-            <div className="mb-8">
-              <h4 className="text-2xl font-bold">
+            <div className="mb-6 sm:mb-8">
+              <h4 className="text-xl sm:text-2xl font-bold">
                 <span className="text-primary">PROP</span>
                 <span className="text-white">CLOUD</span>
               </h4>
               <div className="w-12 h-1 bg-primary mx-auto rounded-full opacity-60 mt-2" />
             </div>
-            <p className="text-gray-400 text-lg mb-4">
+            <p className="text-gray-400 text-base sm:text-lg mb-4">
               Building the future of real estate investment, one conversation at a time.
             </p>
             <p className="text-gray-500 text-sm">
