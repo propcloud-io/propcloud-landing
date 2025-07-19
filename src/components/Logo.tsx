@@ -22,16 +22,11 @@ export function Logo({ className, size = "md", showText = true }: LogoProps) {
 
   return (
     <div className={cn("flex items-center space-x-3", className)}>
-      <div className="relative">
-        <img 
-          src="/lovable-uploads/ca6dcb7f-9a61-40ab-88ac-78b6a9cad3c4.png" 
-          alt="PropCloud Logo"
-          className={cn("object-contain filter brightness-0 invert", sizeClasses[size])}
-          style={{
-            filter: 'brightness(0) invert(1) sepia(1) saturate(5) hue-rotate(140deg)'
-          }}
-        />
-      </div>
+      <img 
+        src="/lovable-uploads/ca6dcb7f-9a61-40ab-88ac-78b6a9cad3c4.png" 
+        alt="PropCloud Logo"
+        className={cn("object-contain", sizeClasses[size])}
+      />
       {showText && (
         <h1 className={cn("font-bold tracking-wider", textSizeClasses[size])}>
           <span className="text-primary">PROP</span>
