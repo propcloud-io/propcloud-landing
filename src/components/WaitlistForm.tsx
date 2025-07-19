@@ -48,12 +48,15 @@ export function WaitlistForm({ onSuccess, size = "default", className = "" }: Wa
           description: "You're on the waitlist, but there was an issue sending the welcome email. We'll be in touch soon!",
           variant: "default",
         });
+        return false;
       } else {
         console.log('Welcome email sent successfully:', data);
+        return true;
       }
     } catch (error) {
       console.error('Error invoking welcome email function:', error);
       // Don't throw - we don't want email sending to block the signup
+      return false;
     }
   };
 
@@ -101,11 +104,13 @@ export function WaitlistForm({ onSuccess, size = "default", className = "" }: Wa
       console.log('Waitlist signup successful for:', email);
       
       // Send welcome email (non-blocking)
-      await sendWelcomeEmail(email.toLowerCase());
+      const emailSent = await sendWelcomeEmail(email.toLowerCase());
       
       toast({
         title: "Welcome to PropCloud!",
-        description: "You're now on our waitlist. Check your email for a welcome message!",
+        description: emailSent 
+          ? "You're now on our waitlist. Check your email for a welcome message!"
+          : "You're now on our waitlist. We'll be in touch soon!",
       });
       
       onSuccess();
