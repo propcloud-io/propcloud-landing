@@ -1,6 +1,8 @@
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useWaitlist } from "@/hooks/useWaitlist";
+import { WaitlistForm } from "./WaitlistForm";
 
 interface WaitlistButtonProps {
   className?: string;
@@ -8,23 +10,13 @@ interface WaitlistButtonProps {
 }
 
 export function WaitlistButton({ className, size = "default" }: WaitlistButtonProps) {
-  const handleWaitlistClick = () => {
-    // In a real app, this would open a form or redirect to a waitlist signup
-    console.log("Waitlist signup clicked");
-  };
+  const { handleWaitlistSuccess } = useWaitlist();
 
   return (
-    <Button
-      onClick={handleWaitlistClick}
+    <WaitlistForm 
+      onSuccess={handleWaitlistSuccess}
       size={size}
-      className={cn(
-        "bg-primary hover:bg-primary/90 text-primary-foreground font-semibold transition-all duration-300",
-        "hover:scale-105 active:scale-95 glow-primary",
-        size === "lg" && "text-lg px-8 py-6 h-auto",
-        className
-      )}
-    >
-      Join the Private Waitlist
-    </Button>
+      className={className}
+    />
   );
 }
