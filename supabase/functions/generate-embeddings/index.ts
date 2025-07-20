@@ -45,16 +45,36 @@ const handler = async (req: Request): Promise<Response> => {
     if (!properties || properties.length === 0) {
       console.log("No properties found that need embeddings");
       return new Response(
-        JSON.stringify({ message: "No properties need embeddings", successCount: 0, errorCount: 0 }),
+        JSON.stringify({ 
+          message: "No properties need embeddings. All properties already have embeddings generated.", 
+          successCount: 0, 
+          errorCount: 0 
+        }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     console.log(`Found ${properties.length} properties needing embeddings`);
 
+    // Test Hugging Face API access first
+    const testResult = await testHuggingFaceAPI();
+    if (!testResult.success) {
+      return new Response(
+        JSON.stringify({ 
+          error: `Hugging Face API test failed: ${testResult.error}. Please check your API key permissions.`,
+          successCount: 0,
+          errorCount: 0
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log("Hugging Face API test passed, proceeding with embedding generation...");
+
     // Process each property
     let successCount = 0;
     let errorCount = 0;
+    const errors: string[] = [];
 
     for (const property of properties) {
       try {
@@ -63,8 +83,8 @@ const handler = async (req: Request): Promise<Response> => {
         // Create text representation of property for embedding
         const propertyText = createPropertyText(property);
         
-        // Generate embedding using Hugging Face transformers
-        const embedding = await generateEmbedding(propertyText);
+        // Generate embedding using Hugging Face transformers with retry
+        const embedding = await generateEmbeddingWithRetry(propertyText, 3);
         
         // Update property with embedding - use service role key to bypass RLS
         const { error: updateError } = await supabase
@@ -74,6 +94,7 @@ const handler = async (req: Request): Promise<Response> => {
 
         if (updateError) {
           console.error(`Error updating property ${property.id}:`, updateError);
+          errors.push(`Failed to update ${property.address}: ${updateError.message}`);
           errorCount++;
         } else {
           console.log(`Successfully updated embedding for: ${property.address}`);
@@ -81,16 +102,20 @@ const handler = async (req: Request): Promise<Response> => {
         }
       } catch (error) {
         console.error(`Error processing property ${property.id}:`, error);
+        errors.push(`Failed to process ${property.address}: ${error.message}`);
         errorCount++;
       }
     }
 
+    const response = {
+      message: `Embedding generation complete. Success: ${successCount}, Errors: ${errorCount}`,
+      successCount,
+      errorCount,
+      errors: errorCount > 0 ? errors : undefined
+    };
+
     return new Response(
-      JSON.stringify({ 
-        message: `Embedding generation complete. Success: ${successCount}, Errors: ${errorCount}`,
-        successCount,
-        errorCount
-      }),
+      JSON.stringify(response),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
@@ -106,6 +131,59 @@ const handler = async (req: Request): Promise<Response> => {
   }
 };
 
+async function testHuggingFaceAPI(): Promise<{ success: boolean; error?: string }> {
+  try {
+    const huggingFaceApiKey = Deno.env.get("HUGGING_FACE_API_KEY");
+    
+    if (!huggingFaceApiKey) {
+      return { success: false, error: "HUGGING_FACE_API_KEY is not set" };
+    }
+
+    console.log("Testing Hugging Face API access...");
+    
+    const response = await fetch(
+      "https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2",
+      {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${huggingFaceApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          inputs: "test",
+          options: { wait_for_model: true }
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Hugging Face API test failed: ${response.status} ${response.statusText}`, errorText);
+      return { 
+        success: false, 
+        error: `HTTP ${response.status}: ${errorText}` 
+      };
+    }
+
+    const result = await response.json();
+    if (!Array.isArray(result) || result.length === 0) {
+      return { 
+        success: false, 
+        error: "Invalid response format from Hugging Face API" 
+      };
+    }
+
+    console.log("Hugging Face API test successful");
+    return { success: true };
+  } catch (error) {
+    console.error("Hugging Face API test error:", error);
+    return { 
+      success: false, 
+      error: error.message 
+    };
+  }
+}
+
 function createPropertyText(property: Property): string {
   // Create a comprehensive text representation for embedding
   const parts = [
@@ -117,6 +195,29 @@ function createPropertyText(property: Property): string {
   ];
   
   return parts.filter(part => part.trim()).join('. ');
+}
+
+async function generateEmbeddingWithRetry(text: string, maxRetries: number): Promise<number[]> {
+  let lastError: Error;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`Embedding attempt ${attempt}/${maxRetries}`);
+      return await generateEmbedding(text);
+    } catch (error) {
+      console.error(`Embedding attempt ${attempt} failed:`, error);
+      lastError = error;
+      
+      if (attempt < maxRetries) {
+        // Wait before retrying (exponential backoff)
+        const delay = Math.pow(2, attempt - 1) * 1000; // 1s, 2s, 4s...
+        console.log(`Waiting ${delay}ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+  
+  throw lastError!;
 }
 
 async function generateEmbedding(text: string): Promise<number[]> {
@@ -146,9 +247,8 @@ async function generateEmbedding(text: string): Promise<number[]> {
     );
 
     if (!response.ok) {
-      console.error(`Hugging Face API error: ${response.status} ${response.statusText}`);
       const errorText = await response.text();
-      console.error("Error response:", errorText);
+      console.error(`Hugging Face API error: ${response.status} ${response.statusText}`, errorText);
       throw new Error(`Hugging Face API failed: ${response.status} - ${errorText}`);
     }
 

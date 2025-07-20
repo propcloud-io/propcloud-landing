@@ -64,31 +64,68 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Processing user query:", message);
 
-    // Step 1: Generate query embedding using Hugging Face transformers
-    const queryEmbedding = await generateQueryEmbedding(message);
-    
-    // Step 2: Perform semantic vector search on properties
-    const relevantProperties = await findRelevantPropertiesVector(supabase, queryEmbedding);
-    
+    let relevantProperties: Property[] = [];
+    let searchMethod = "fallback";
+
+    // Try vector search first, but fallback to regular query if it fails
+    try {
+      console.log("Attempting vector search...");
+      const queryEmbedding = await generateQueryEmbedding(message);
+      relevantProperties = await findRelevantPropertiesVector(supabase, queryEmbedding);
+      
+      if (relevantProperties && relevantProperties.length > 0) {
+        searchMethod = "vector";
+        console.log(`Vector search successful: found ${relevantProperties.length} properties`);
+      } else {
+        console.log("Vector search returned no results, falling back to regular query");
+        throw new Error("No vector results found");
+      }
+    } catch (vectorError) {
+      console.log("Vector search failed, using fallback method:", vectorError.message);
+      
+      // Fallback to regular property query
+      try {
+        const { data: fallbackProperties, error: fallbackError } = await supabase
+          .from("properties")
+          .select("*")
+          .limit(3);
+        
+        if (fallbackError) {
+          console.error("Fallback query also failed:", fallbackError);
+          throw fallbackError;
+        }
+        
+        relevantProperties = fallbackProperties || [];
+        console.log(`Fallback search found ${relevantProperties.length} properties`);
+      } catch (fallbackError) {
+        console.error("Both vector and fallback searches failed:", fallbackError);
+        return new Response(
+          JSON.stringify({ 
+            response: "I'm having trouble accessing the property database right now. Please try again in a moment." 
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
     if (!relevantProperties || relevantProperties.length === 0) {
-      console.log("No relevant properties found with vector search");
+      console.log("No properties found with any search method");
       return new Response(
         JSON.stringify({ 
-          response: "I don't have enough relevant property data to answer your question confidently. Could you ask about a specific property or provide more details about what you're looking for?" 
+          response: "I don't have enough property data to answer your question confidently. Could you ask about a specific property or provide more details about what you're looking for?" 
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    console.log(`Found ${relevantProperties.length} relevant properties using vector search`);
-
-    // Step 3: Construct the Master Prompt for Gemini
-    const masterPrompt = constructMasterPrompt(message, relevantProperties);
+    // Construct the Master Prompt for Gemini
+    const masterPrompt = constructMasterPrompt(message, relevantProperties, searchMethod);
     
-    // Step 4: Call Gemini API
+    // Call Gemini API
+    console.log("Calling Gemini API...");
     const geminiResponse = await callGeminiAPI(masterPrompt);
     
-    console.log("Gemini response received");
+    console.log("Gemini response received successfully");
 
     return new Response(
       JSON.stringify({ response: geminiResponse }),
@@ -137,9 +174,8 @@ async function generateQueryEmbedding(query: string): Promise<number[]> {
     );
 
     if (!response.ok) {
-      console.error(`Hugging Face API error: ${response.status} ${response.statusText}`);
       const errorText = await response.text();
-      console.error("Error response:", errorText);
+      console.error(`Hugging Face API error: ${response.status} ${response.statusText}`, errorText);
       throw new Error(`Hugging Face API failed: ${response.status} - ${errorText}`);
     }
 
@@ -172,20 +208,7 @@ async function findRelevantPropertiesVector(supabase: any, queryEmbedding: numbe
 
     if (error) {
       console.error("Error in vector search:", error);
-      // Fallback to regular query if vector search fails
-      console.log("Falling back to regular property query...");
-      const { data: fallbackProperties, error: fallbackError } = await supabase
-        .from("properties")
-        .select("*")
-        .not('embedding', 'is', null)
-        .limit(3);
-      
-      if (fallbackError) {
-        console.error("Fallback query also failed:", fallbackError);
-        return [];
-      }
-      
-      return fallbackProperties || [];
+      throw error;
     }
 
     console.log(`Vector search returned ${properties?.length || 0} properties`);
@@ -193,11 +216,11 @@ async function findRelevantPropertiesVector(supabase: any, queryEmbedding: numbe
     
   } catch (error) {
     console.error("Error in findRelevantPropertiesVector:", error);
-    return [];
+    throw error;
   }
 }
 
-function constructMasterPrompt(userQuery: string, properties: Property[]): string {
+function constructMasterPrompt(userQuery: string, properties: Property[], searchMethod: string): string {
   // Create structured context from properties
   const propertyContext = properties.map((prop, index) => {
     return `
@@ -212,6 +235,10 @@ function constructMasterPrompt(userQuery: string, properties: Property[]): strin
 - Listing URL: ${prop.listing_url || 'N/A'}
 `;
   }).join('\n---\n');
+
+  const searchNote = searchMethod === "vector" 
+    ? "Note: These properties were selected using AI-powered semantic search based on your query."
+    : "Note: These are sample properties from our database. For more targeted results, try generating AI embeddings first.";
 
   return `You are PropCloud, a meticulous and data-driven Miami real estate investment analyst specializing in short-term rental (STR) properties. Your tone is professional, confident, and helpful.
 
@@ -234,6 +261,8 @@ function constructMasterPrompt(userQuery: string, properties: Property[]): strin
 
 **[CONTEXT]:**
 ${propertyContext}
+
+${searchNote}
 
 **USER QUESTION:** ${userQuery}
 
