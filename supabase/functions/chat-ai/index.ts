@@ -112,6 +112,12 @@ const handler = async (req: Request): Promise<Response> => {
 
 async function generateQueryEmbedding(query: string): Promise<number[]> {
   try {
+    const huggingFaceApiKey = Deno.env.get("HUGGING_FACE_API_KEY");
+    
+    if (!huggingFaceApiKey) {
+      throw new Error("HUGGING_FACE_API_KEY is not set");
+    }
+
     console.log("Generating embedding for query:", query);
     
     // Use Hugging Face Inference API for sentence transformers
@@ -120,6 +126,7 @@ async function generateQueryEmbedding(query: string): Promise<number[]> {
       {
         method: "POST",
         headers: {
+          "Authorization": `Bearer ${huggingFaceApiKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -131,7 +138,9 @@ async function generateQueryEmbedding(query: string): Promise<number[]> {
 
     if (!response.ok) {
       console.error(`Hugging Face API error: ${response.status} ${response.statusText}`);
-      throw new Error(`Hugging Face API failed: ${response.status}`);
+      const errorText = await response.text();
+      console.error("Error response:", errorText);
+      throw new Error(`Hugging Face API failed: ${response.status} - ${errorText}`);
     }
 
     const embedding = await response.json();
