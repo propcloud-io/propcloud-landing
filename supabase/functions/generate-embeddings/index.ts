@@ -121,13 +121,21 @@ function createPropertyText(property: Property): string {
 
 async function generateEmbedding(text: string): Promise<number[]> {
   try {
+    const huggingFaceApiKey = Deno.env.get("HUGGING_FACE_API_KEY");
+    
+    if (!huggingFaceApiKey) {
+      throw new Error("HUGGING_FACE_API_KEY is not set");
+    }
+
+    console.log("Calling Hugging Face API for embedding...");
+    
     // Use Hugging Face Inference API for sentence transformers
     const response = await fetch(
       "https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2",
       {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${Deno.env.get("HUGGING_FACE_API_KEY")}`,
+          "Authorization": `Bearer ${huggingFaceApiKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -141,15 +149,18 @@ async function generateEmbedding(text: string): Promise<number[]> {
       console.error(`Hugging Face API error: ${response.status} ${response.statusText}`);
       const errorText = await response.text();
       console.error("Error response:", errorText);
-      throw new Error(`Hugging Face API failed: ${response.status}`);
+      throw new Error(`Hugging Face API failed: ${response.status} - ${errorText}`);
     }
 
     const embedding = await response.json();
+    console.log(`Embedding response type: ${typeof embedding}, length: ${Array.isArray(embedding) ? embedding.length : 'not array'}`);
     
     // The API returns the embedding directly as an array
     if (Array.isArray(embedding) && embedding.length > 0) {
+      console.log(`Successfully generated embedding with ${embedding.length} dimensions`);
       return embedding;
     } else {
+      console.error("Invalid embedding format received:", embedding);
       throw new Error("Invalid embedding format received");
     }
   } catch (error) {
