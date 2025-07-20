@@ -8,6 +8,7 @@ import { Send, Loader2, ArrowLeft, User, Bot } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import GenerateEmbeddingsButton from "@/components/GenerateEmbeddingsButton";
 
 interface Message {
   id: string;
@@ -226,9 +227,12 @@ const Chat = () => {
             </Link>
             <h1 className="text-2xl font-bold">PropCloud AI</h1>
           </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <User className="h-4 w-4" />
-            {user?.email}
+          <div className="flex items-center gap-4">
+            <GenerateEmbeddingsButton />
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <User className="h-4 w-4" />
+              {user?.email}
+            </div>
           </div>
         </div>
 
@@ -281,7 +285,11 @@ const Chat = () => {
                     <div className="text-center text-muted-foreground py-12">
                       <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
                       <p className="text-lg mb-2">Welcome to PropCloud AI!</p>
-                      <p>Ask me anything about real estate properties, market trends, or investment opportunities.</p>
+                      <p className="mb-4">Ask me anything about real estate properties, market trends, or investment opportunities.</p>
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm">
+                        <p className="font-medium text-blue-800 mb-2">🚀 First time here?</p>
+                        <p className="text-blue-700">Click "Generate AI Embeddings" above to enable intelligent property search and analysis!</p>
+                      </div>
                     </div>
                   )}
                   
