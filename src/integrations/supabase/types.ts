@@ -72,6 +72,8 @@ export type Database = {
       }
       profiles: {
         Row: {
+          access_expires_at: string | null
+          access_granted_by: string | null
           created_at: string | null
           email: string | null
           full_name: string | null
@@ -79,6 +81,8 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          access_expires_at?: string | null
+          access_granted_by?: string | null
           created_at?: string | null
           email?: string | null
           full_name?: string | null
@@ -86,6 +90,8 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          access_expires_at?: string | null
+          access_granted_by?: string | null
           created_at?: string | null
           email?: string | null
           full_name?: string | null
@@ -153,6 +159,9 @@ export type Database = {
       }
       waitlist: {
         Row: {
+          approved: boolean | null
+          approved_at: string | null
+          approved_by: string | null
           created_at: string
           email: string
           id: string
@@ -160,6 +169,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          approved?: boolean | null
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string
           email: string
           id?: string
@@ -167,6 +179,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          approved?: boolean | null
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string
           email?: string
           id?: string
@@ -183,6 +198,18 @@ export type Database = {
       binary_quantize: {
         Args: { "": string } | { "": unknown }
         Returns: unknown
+      }
+      can_user_signup: {
+        Args: { user_email: string }
+        Returns: boolean
+      }
+      grant_user_access: {
+        Args: {
+          user_email: string
+          expires_days?: number
+          granted_by_user?: string
+        }
+        Returns: boolean
       }
       halfvec_avg: {
         Args: { "": number[] }

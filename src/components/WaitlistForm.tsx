@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Mail, CheckCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface WaitlistFormProps {
   onSuccess: () => void;
@@ -17,6 +18,7 @@ export function WaitlistForm({ onSuccess, size = "default", className = "" }: Wa
   const [isLoading, setIsLoading] = useState(false);
   const [isValid, setIsValid] = useState(true);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -42,12 +44,6 @@ export function WaitlistForm({ onSuccess, size = "default", className = "" }: Wa
 
       if (error) {
         console.error('Error sending welcome email:', error);
-        // Don't throw - we don't want email sending to block the signup
-        toast({
-          title: "Welcome email issue",
-          description: "You're on the waitlist, but there was an issue sending the welcome email. We'll be in touch soon!",
-          variant: "default",
-        });
         return false;
       } else {
         console.log('Welcome email sent successfully:', data);
@@ -55,7 +51,6 @@ export function WaitlistForm({ onSuccess, size = "default", className = "" }: Wa
       }
     } catch (error) {
       console.error('Error invoking welcome email function:', error);
-      // Don't throw - we don't want email sending to block the signup
       return false;
     }
   };
@@ -74,15 +69,23 @@ export function WaitlistForm({ onSuccess, size = "default", className = "" }: Wa
       // Check for existing email first
       const { data: existingUser } = await supabase
         .from('waitlist')
-        .select('email')
+        .select('email, approved')
         .eq('email', email.toLowerCase())
         .single();
 
       if (existingUser) {
-        toast({
-          title: "Already subscribed!",
-          description: "You're already on our waitlist. We'll be in touch soon!",
-        });
+        if (existingUser.approved) {
+          toast({
+            title: "You're approved!",
+            description: "You can sign up for an account now. Redirecting to signup...",
+          });
+          setTimeout(() => navigate('/auth'), 2000);
+        } else {
+          toast({
+            title: "Already on waitlist",
+            description: "You're already on our waitlist. We'll notify you when approved!",
+          });
+        }
         setIsLoading(false);
         return;
       }
@@ -110,7 +113,7 @@ export function WaitlistForm({ onSuccess, size = "default", className = "" }: Wa
         title: "Welcome to PropCloud!",
         description: emailSent 
           ? "You're now on our waitlist. Check your email for a welcome message!"
-          : "You're now on our waitlist. We'll be in touch soon!",
+          : "You're now on our waitlist. We'll notify you when approved!",
       });
       
       onSuccess();
