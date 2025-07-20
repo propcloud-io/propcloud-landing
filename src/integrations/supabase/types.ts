@@ -236,6 +236,29 @@ export type Database = {
         Args: { "": string } | { "": unknown } | { "": unknown }
         Returns: unknown
       }
+      match_properties: {
+        Args: {
+          query_embedding: string
+          match_threshold?: number
+          match_count?: number
+        }
+        Returns: {
+          id: string
+          address: string
+          listing_price: number
+          beds: number
+          baths: number
+          sqft: number
+          description: string
+          sales_history: Json
+          tax_history: Json
+          permit_history: Json
+          market_comps: Json
+          listing_url: string
+          image_url: string
+          similarity: number
+        }[]
+      }
       sparsevec_out: {
         Args: { "": unknown }
         Returns: unknown
