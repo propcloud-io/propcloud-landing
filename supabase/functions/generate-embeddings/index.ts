@@ -23,6 +23,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Use SERVICE_ROLE_KEY to bypass RLS and access all properties
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
@@ -30,7 +31,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Starting embedding generation for all properties...");
 
-    // Get all properties that need embeddings
+    // Get all properties that need embeddings (where embedding IS NULL)
     const { data: properties, error: fetchError } = await supabase
       .from("properties")
       .select("id, address, description, beds, baths, sqft, listing_price")
@@ -42,8 +43,9 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     if (!properties || properties.length === 0) {
+      console.log("No properties found that need embeddings");
       return new Response(
-        JSON.stringify({ message: "No properties need embeddings" }),
+        JSON.stringify({ message: "No properties need embeddings", successCount: 0, errorCount: 0 }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -64,7 +66,7 @@ const handler = async (req: Request): Promise<Response> => {
         // Generate embedding using Hugging Face transformers
         const embedding = await generateEmbedding(propertyText);
         
-        // Update property with embedding
+        // Update property with embedding - use service role key to bypass RLS
         const { error: updateError } = await supabase
           .from("properties")
           .update({ embedding })
@@ -125,6 +127,7 @@ async function generateEmbedding(text: string): Promise<number[]> {
       {
         method: "POST",
         headers: {
+          "Authorization": `Bearer ${Deno.env.get("HUGGING_FACE_API_KEY")}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
