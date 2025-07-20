@@ -22,6 +22,15 @@ interface Conversation {
   created_at: string;
 }
 
+// Type for Supabase message response
+interface SupabaseMessage {
+  id: string;
+  role: string;
+  content: string;
+  created_at: string;
+  conversation_id: string;
+}
+
 export default function Chat() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -101,7 +110,14 @@ export default function Chat() {
     if (error) {
       console.error('Error loading messages:', error);
     } else {
-      setMessages(data || []);
+      // Convert Supabase messages to our Message type with proper role casting
+      const typedMessages: Message[] = (data || []).map((msg: SupabaseMessage) => ({
+        id: msg.id,
+        role: msg.role as 'user' | 'assistant',
+        content: msg.content,
+        created_at: msg.created_at
+      }));
+      setMessages(typedMessages);
     }
   };
 
@@ -170,7 +186,13 @@ export default function Chat() {
       // Save user message
       const userMsg = await saveMessage(conversationId, 'user', userMessage);
       if (userMsg) {
-        setMessages(prev => [...prev, userMsg]);
+        const typedUserMsg: Message = {
+          id: userMsg.id,
+          role: 'user',
+          content: userMsg.content,
+          created_at: userMsg.created_at
+        };
+        setMessages(prev => [...prev, typedUserMsg]);
       }
 
       // Call the AI API
@@ -187,7 +209,13 @@ export default function Chat() {
       // Save AI response
       const aiMsg = await saveMessage(conversationId, 'assistant', aiResponse);
       if (aiMsg) {
-        setMessages(prev => [...prev, aiMsg]);
+        const typedAiMsg: Message = {
+          id: aiMsg.id,
+          role: 'assistant',
+          content: aiMsg.content,
+          created_at: aiMsg.created_at
+        };
+        setMessages(prev => [...prev, typedAiMsg]);
       }
 
       // Update conversation title if it's the first message
