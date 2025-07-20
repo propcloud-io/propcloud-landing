@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,8 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { Loader2, Send, LogOut, MessageCircle } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface Message {
   id: string;
@@ -329,8 +330,16 @@ export default function Chat() {
           {messages.length === 0 ? (
             <div className="text-center text-muted-foreground py-12">
               <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p className="text-lg">Start a conversation with your AI real estate assistant</p>
-              <p className="text-sm mt-2">Ask about properties, market analysis, or investment opportunities in Miami</p>
+              <p className="text-lg">Welcome to PropCloud AI</p>
+              <p className="text-sm mt-2">Ask me about Miami real estate properties, ROI analysis, or market insights</p>
+              <div className="mt-4 text-xs bg-accent p-3 rounded-lg max-w-md mx-auto">
+                <p className="font-medium mb-2">Try asking:</p>
+                <ul className="text-left space-y-1">
+                  <li>• "What's the ROI on Ocean Drive properties?"</li>
+                  <li>• "Compare investment potential in Miami Beach"</li>
+                  <li>• "Show me the best value STR properties"</li>
+                </ul>
+              </div>
             </div>
           ) : (
             messages.map((message) => (
@@ -344,7 +353,27 @@ export default function Chat() {
                     : 'bg-card'
                 }`}>
                   <CardContent className="p-3">
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    {message.role === 'assistant' ? (
+                      <div className="prose prose-sm max-w-none dark:prose-invert">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                            ul: ({ children }) => <ul className="list-disc pl-4 mb-2">{children}</ul>,
+                            ol: ({ children }) => <ol className="list-decimal pl-4 mb-2">{children}</ol>,
+                            li: ({ children }) => <li className="mb-1">{children}</li>,
+                            strong: ({ children }) => <strong className="font-semibold text-primary">{children}</strong>,
+                            h1: ({ children }) => <h1 className="text-lg font-bold mb-2">{children}</h1>,
+                            h2: ({ children }) => <h2 className="text-base font-bold mb-2">{children}</h2>,
+                            h3: ({ children }) => <h3 className="text-sm font-bold mb-1">{children}</h3>,
+                          }}
+                        >
+                          {message.content}
+                        </ReactMarkdown>
+                      </div>
+                    ) : (
+                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    )}
                   </CardContent>
                 </Card>
               </div>
@@ -361,7 +390,7 @@ export default function Chat() {
                       <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
                       <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
                     </div>
-                    <span className="text-sm text-muted-foreground">AI is thinking...</span>
+                    <span className="text-sm text-muted-foreground">PropCloud is analyzing...</span>
                   </div>
                 </CardContent>
               </Card>
@@ -377,7 +406,7 @@ export default function Chat() {
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about Miami real estate properties..."
+              placeholder="Ask about Miami real estate properties, ROI, or market insights..."
               className="flex-1"
               disabled={isTyping}
             />

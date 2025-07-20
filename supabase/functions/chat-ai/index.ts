@@ -25,6 +25,7 @@ interface Property {
   permit_history: any;
   market_comps: any;
   listing_url: string;
+  image_url: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -61,68 +62,38 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { message, conversation_id }: ChatRequest = await req.json();
 
-    // Get relevant property data for context
-    const { data: properties, error: propertiesError } = await supabase
-      .from("properties")
-      .select("*")
-      .limit(5);
+    console.log("Processing user query:", message);
 
-    if (propertiesError) {
-      console.error("Error fetching properties:", propertiesError);
+    // Step 1: Generate query embedding using a simple approach
+    // For now, we'll get relevant properties based on keyword matching and content
+    // In production, you'd use a proper embedding model here
+    const queryEmbedding = await generateQueryEmbedding(message);
+    
+    // Step 2: Perform semantic search on properties
+    const relevantProperties = await findRelevantProperties(supabase, message, queryEmbedding);
+    
+    if (!relevantProperties || relevantProperties.length === 0) {
+      console.log("No relevant properties found");
       return new Response(
-        JSON.stringify({ error: "Failed to fetch property data" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ 
+          message: "I don't have enough relevant property data to answer your question confidently. Could you ask about a specific property or provide more details about what you're looking for?" 
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Create context from properties
-    const propertyContext = properties.map((prop: Property) => {
-      return `
-Property: ${prop.address}
-Price: $${prop.listing_price?.toLocaleString() || 'N/A'}
-Specs: ${prop.beds} beds, ${prop.baths} baths, ${prop.sqft} sqft
-Description: ${prop.description}
-Sales History: ${JSON.stringify(prop.sales_history)}
-Tax History: ${JSON.stringify(prop.tax_history)}
-Permit History: ${JSON.stringify(prop.permit_history)}
-Market Comps: ${JSON.stringify(prop.market_comps)}
-Listing URL: ${prop.listing_url}
-`;
-    }).join('\n---\n');
+    console.log(`Found ${relevantProperties.length} relevant properties`);
 
-    // Create the master prompt for Gemini
-    const masterPrompt = `
-You are PropCloud, a meticulous and data-driven real estate investment analyst specializing in Miami short-term rental (STR) properties. You provide expert analysis and insights for real estate investors.
-
-CRITICAL RULES:
-1. You MUST ONLY use the property data provided below
-2. If the answer is not in the provided data, clearly state that you cannot provide a confident analysis
-3. Always cite specific data points from the properties when making claims
-4. Focus on STR investment potential, ROI analysis, and market trends
-5. Be professional, trustworthy, and data-driven in your responses
-6. Provide specific numbers and calculations when possible
-
-USER QUESTION: ${message}
-
-AVAILABLE PROPERTY DATA:
-${propertyContext}
-
-ANALYSIS FRAMEWORK:
-1. First, identify which properties are most relevant to the user's question
-2. Extract and analyze the relevant data points
-3. Calculate metrics like potential ROI, cash flow, cap rates when applicable
-4. Compare properties if appropriate
-5. Provide clear recommendations based on the data
-
-Provide your analysis now:
-`;
-
-    // Since we don't have actual Gemini API integration, I'll provide a sophisticated mock response
-    // In production, you would call the actual Gemini API here
-    const mockResponse = generateMockAIResponse(message, properties);
+    // Step 3: Construct the Master Prompt for Gemini
+    const masterPrompt = constructMasterPrompt(message, relevantProperties);
+    
+    // Step 4: Call Gemini API
+    const geminiResponse = await callGeminiAPI(masterPrompt);
+    
+    console.log("Gemini response received");
 
     return new Response(
-      JSON.stringify({ message: mockResponse }),
+      JSON.stringify({ message: geminiResponse }),
       { 
         status: 200, 
         headers: { ...corsHeaders, "Content-Type": "application/json" } 
@@ -132,7 +103,7 @@ Provide your analysis now:
   } catch (error: any) {
     console.error("Error in chat-ai function:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: `AI processing failed: ${error.message}` }),
       { 
         status: 500, 
         headers: { ...corsHeaders, "Content-Type": "application/json" } 
@@ -141,162 +112,207 @@ Provide your analysis now:
   }
 };
 
-function generateMockAIResponse(message: string, properties: Property[]): string {
-  const lowerMessage = message.toLowerCase();
+async function generateQueryEmbedding(query: string): Promise<number[]> {
+  // Simplified approach - in production you'd use a proper embedding model
+  // For now, we'll return a simple representation
+  const words = query.toLowerCase().split(' ');
+  const embedding = new Array(384).fill(0);
   
-  // ROI Analysis
-  if (lowerMessage.includes('roi') || lowerMessage.includes('return') || lowerMessage.includes('investment')) {
-    const oceanDrive = properties.find(p => p.address.includes('Ocean Drive'));
-    const collins = properties.find(p => p.address.includes('Collins'));
+  // Simple hash-based embedding for demonstration
+  words.forEach((word, index) => {
+    const hash = simpleHash(word);
+    embedding[hash % 384] += 1;
+  });
+  
+  return embedding;
+}
+
+function simpleHash(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  return Math.abs(hash);
+}
+
+async function findRelevantProperties(supabase: any, query: string, embedding: number[]): Promise<Property[]> {
+  try {
+    // For now, we'll use text-based search combined with the most complete properties
+    // This is a simplified approach while we build out the full vector search
     
-    if (oceanDrive && collins) {
-      const oceanDriveROI = ((oceanDrive.market_comps.avg_nightly_rate * 365 * oceanDrive.market_comps.occupancy_rate) / oceanDrive.listing_price * 100).toFixed(1);
-      const collinsROI = ((collins.market_comps.avg_nightly_rate * 365 * collins.market_comps.occupancy_rate) / collins.listing_price * 100).toFixed(1);
+    const queryLower = query.toLowerCase();
+    const searchTerms = [
+      'ocean drive', 'collins', 'brickell', 'wynwood', 'coral gables',
+      'roi', 'return', 'investment', 'cash flow', 'market', 'price',
+      'bed', 'bath', 'sqft', 'square feet'
+    ];
+    
+    // Find properties that match search terms or get top properties with complete data
+    const { data: properties, error } = await supabase
+      .from("properties")
+      .select("*")
+      .not('market_comps', 'is', null)
+      .not('listing_price', 'is', null)
+      .limit(5);
+
+    if (error) {
+      console.error("Error fetching properties:", error);
+      return [];
+    }
+
+    if (!properties || properties.length === 0) {
+      return [];
+    }
+
+    // Score properties based on relevance to query
+    const scoredProperties = properties.map((prop: Property) => {
+      let score = 0;
+      const propText = `${prop.address} ${prop.description || ''}`.toLowerCase();
       
-      return `Based on the available Miami property data, here's my ROI analysis:
+      // Check for direct matches
+      searchTerms.forEach(term => {
+        if (queryLower.includes(term) && propText.includes(term)) {
+          score += 2;
+        }
+      });
+      
+      // Boost properties with more complete data
+      if (prop.market_comps && prop.sales_history) score += 1;
+      if (prop.tax_history && prop.permit_history) score += 1;
+      
+      return { ...prop, relevanceScore: score };
+    });
 
-**Top Investment Opportunities:**
+    // Sort by relevance score and return top 3
+    return scoredProperties
+      .sort((a, b) => b.relevanceScore - a.relevanceScore)
+      .slice(0, 3);
+      
+  } catch (error) {
+    console.error("Error in findRelevantProperties:", error);
+    return [];
+  }
+}
 
-**${oceanDrive.address}**
-• Listing Price: $${oceanDrive.listing_price.toLocaleString()}
-• Nightly Rate: $${oceanDrive.market_comps.avg_nightly_rate}
-• Occupancy Rate: ${(oceanDrive.market_comps.occupancy_rate * 100).toFixed(0)}%
-• Annual Gross Revenue: $${(oceanDrive.market_comps.avg_nightly_rate * 365 * oceanDrive.market_comps.occupancy_rate).toLocaleString()}
-• **Estimated ROI: ${oceanDriveROI}%**
+function constructMasterPrompt(userQuery: string, properties: Property[]): string {
+  // Create structured context from properties
+  const propertyContext = properties.map((prop, index) => {
+    return `
+**Property ${index + 1}: ${prop.address}**
+- Listing Price: $${prop.listing_price?.toLocaleString() || 'N/A'}
+- Specifications: ${prop.beds} beds, ${prop.baths} baths, ${prop.sqft || 'N/A'} sqft
+- Description: ${prop.description || 'No description available'}
+- Sales History: ${JSON.stringify(prop.sales_history || {})}
+- Tax History: ${JSON.stringify(prop.tax_history || {})}
+- Permit History: ${JSON.stringify(prop.permit_history || {})}
+- Market Comparables: ${JSON.stringify(prop.market_comps || {})}
+- Listing URL: ${prop.listing_url || 'N/A'}
+`;
+  }).join('\n---\n');
 
-**${collins.address}**
-• Listing Price: $${collins.listing_price.toLocaleString()}
-• Nightly Rate: $${collins.market_comps.avg_nightly_rate}
-• Occupancy Rate: ${(collins.market_comps.occupancy_rate * 100).toFixed(0)}%
-• Annual Gross Revenue: $${(collins.market_comps.avg_nightly_rate * 365 * collins.market_comps.occupancy_rate).toLocaleString()}
-• **Estimated ROI: ${collinsROI}%**
+  return `You are PropCloud, a meticulous and data-driven Miami real estate investment analyst specializing in short-term rental (STR) properties. Your tone is professional, confident, and helpful.
 
-**Key Insights:**
-• Collins Avenue property shows stronger ROI potential due to higher occupancy rates
-• Ocean Drive commands premium nightly rates but has slightly lower occupancy
-• Both properties benefit from Miami Beach's strong STR market fundamentals
+**CRITICAL RULES:**
+1. You MUST ONLY use the property data provided in the [CONTEXT] section below
+2. You MUST NOT use any general real estate knowledge outside the provided data
+3. If the data required to answer the question is not in the context, state that you cannot provide a confident analysis without more information
+4. Always cite specific data points from the properties when making claims
+5. Focus on STR investment potential, ROI analysis, and market trends
+6. Provide specific numbers and calculations when possible
+7. Use **bold text** for emphasis and bullet points for lists
+8. Be concise but comprehensive in your analysis
 
-*Note: These calculations are based on gross revenue and don't include operating expenses, taxes, or management fees.*`;
+**ANALYSIS FRAMEWORK:**
+1. First, identify which properties are most relevant to the user's question
+2. Extract and analyze the relevant data points
+3. Calculate metrics like potential ROI, cash flow, cap rates when applicable using the formula: (Annual Rental Income / Property Price) × 100
+4. Compare properties if appropriate
+5. Provide clear recommendations based on the data
+
+**[CONTEXT]:**
+${propertyContext}
+
+**USER QUESTION:** ${userQuery}
+
+**ANALYSIS:**`;
+}
+
+async function callGeminiAPI(prompt: string): Promise<string> {
+  const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+  
+  if (!GEMINI_API_KEY) {
+    throw new Error('Gemini API key not configured');
+  }
+
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: prompt
+            }]
+          }],
+          generationConfig: {
+            temperature: 0.2,
+            topK: 40,
+            topP: 0.8,
+            maxOutputTokens: 1024,
+          },
+          safetySettings: [
+            {
+              category: "HARM_CATEGORY_HARASSMENT",
+              threshold: "BLOCK_MEDIUM_AND_ABOVE"
+            },
+            {
+              category: "HARM_CATEGORY_HATE_SPEECH",
+              threshold: "BLOCK_MEDIUM_AND_ABOVE"
+            },
+            {
+              category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+              threshold: "BLOCK_MEDIUM_AND_ABOVE"
+            },
+            {
+              category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+              threshold: "BLOCK_MEDIUM_AND_ABOVE"
+            }
+          ]
+        })
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Gemini API error:', response.status, errorText);
+      throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
     }
-  }
-  
-  // Market Analysis
-  if (lowerMessage.includes('market') || lowerMessage.includes('trend') || lowerMessage.includes('miami')) {
-    return `Based on the current Miami property data, here's my market analysis:
 
-**Miami STR Market Overview:**
-
-**Price Segments:**
-• Luxury Tier ($1M+): Collins Avenue penthouse at $1,250,000
-• Mid-Market ($600K-$1M): Ocean Drive condo at $850,000, Coral Gables home at $950,000
-• Value Tier (<$600K): Brickell condo at $680,000, Wynwood loft at $425,000
-
-**Performance Metrics:**
-• Average Nightly Rates: $140-$380 across different areas
-• Occupancy Rates: 72%-85% depending on location and property type
-• Highest Performing: Collins Avenue (85% occupancy, $380/night)
-• Emerging Value: Wynwood Arts District (80% occupancy, $140/night)
-
-**Location Insights:**
-• **Miami Beach**: Premium pricing, established STR market, strong tourist demand
-• **Brickell**: Business travel focused, consistent mid-week bookings
-• **Wynwood**: Hip, artistic neighborhood attracting younger demographics
-• **Coral Gables**: Luxury market with cultural attractions nearby
-
-**Investment Trends:**
-• Properties with recent renovations show 15-20% premium rates
-• Oceanfront locations maintain higher occupancy rates year-round
-• Permit activity suggests continued market confidence`;
-  }
-  
-  // Specific property inquiry
-  if (lowerMessage.includes('ocean drive') || lowerMessage.includes('123 ocean')) {
-    const property = properties.find(p => p.address.includes('Ocean Drive'));
-    if (property) {
-      return `**Property Analysis: ${property.address}**
-
-**Investment Fundamentals:**
-• **Current Price**: $${property.listing_price.toLocaleString()}
-• **Property Type**: ${property.beds} bed, ${property.baths} bath oceanfront condo
-• **Size**: ${property.sqft} square feet
-• **Price per sqft**: $${Math.round(property.listing_price / property.sqft)}
-
-**STR Performance Data:**
-• **Nightly Rate**: $${property.market_comps.avg_nightly_rate}
-• **Occupancy Rate**: ${(property.market_comps.occupancy_rate * 100).toFixed(0)}%
-• **Annual Gross Revenue**: $${(property.market_comps.avg_nightly_rate * 365 * property.market_comps.occupancy_rate).toLocaleString()}
-
-**Recent Activity:**
-• **Sales History**: Last sold for $820,000 in March 2023 (3.7% appreciation)
-• **Tax Assessment**: $780,000 in 2024 ($18,720 annual taxes)
-• **Recent Improvements**: Interior renovation ($45,000) and electrical upgrade ($8,000)
-
-**Comparable Properties:**
-• 125 Ocean Drive: $275/night
-• 119 Ocean Drive: $230/night
-• **This property is competitively positioned** at $250/night
-
-**Investment Recommendation:**
-This oceanfront property offers **strong fundamentals** with recent renovations supporting premium pricing. The 78% occupancy rate is solid for Miami Beach, and the $250 nightly rate is well-positioned among comparables.
-
-**Risk Factors**: Higher price point requires strong marketing, seasonal demand fluctuations typical for Miami Beach.`;
+    const data = await response.json();
+    
+    if (!data.candidates || data.candidates.length === 0) {
+      console.error('No candidates in Gemini response:', data);
+      throw new Error('No response generated by Gemini');
     }
+
+    const generatedText = data.candidates[0].content.parts[0].text;
+    
+    if (!generatedText) {
+      throw new Error('Empty response from Gemini');
+    }
+
+    return generatedText;
+    
+  } catch (error) {
+    console.error('Error calling Gemini API:', error);
+    throw new Error(`Failed to get AI response: ${error.message}`);
   }
-  
-  // Comparison request
-  if (lowerMessage.includes('compare') || lowerMessage.includes('vs') || lowerMessage.includes('versus')) {
-    return `**Miami Property Comparison Analysis:**
-
-I've analyzed our top 3 STR investment opportunities:
-
-**🏆 Best Overall ROI: Collins Avenue Penthouse**
-• Price: $1,250,000 | ROI: 11.1%
-• Nightly Rate: $380 | Occupancy: 85%
-• Why: Premium location, highest occupancy rate, luxury amenities
-
-**💰 Best Value Play: Wynwood Loft**
-• Price: $425,000 | ROI: 26.4%
-• Nightly Rate: $140 | Occupancy: 80%
-• Why: Emerging neighborhood, high occupancy, low entry cost
-
-**🏖️ Best Location Premium: Ocean Drive**
-• Price: $850,000 | ROI: 7.1%
-• Nightly Rate: $250 | Occupancy: 78%
-• Why: Iconic Miami Beach address, strong brand recognition
-
-**📊 Key Metrics Summary:**
-• **Highest Cash Flow**: Collins Avenue ($118,170/year)
-• **Lowest Investment**: Wynwood ($425,000)
-• **Most Stable**: Ocean Drive (established market)
-• **Highest Growth Potential**: Wynwood (gentrifying area)
-
-**My Recommendation**: For maximum ROI with reasonable risk, consider the **Wynwood property** - it offers the best return percentage while being in an up-and-coming area with strong fundamentals.`;
-  }
-  
-  // Default response
-  return `I'm your PropCloud AI assistant, ready to help with Miami real estate investment analysis.
-
-**Available Data Coverage:**
-• 5 premium Miami properties across key neighborhoods
-• Market comparables and nightly rates
-• Historical sales and tax data
-• Recent permit activity
-• STR performance metrics
-
-**I can help you with:**
-• ROI calculations and investment analysis
-• Property comparisons and recommendations
-• Market trends and neighborhood insights
-• Cash flow projections
-• Risk assessment
-
-**Sample Questions:**
-• "What's the ROI on the Ocean Drive property?"
-• "Compare investment potential across Miami neighborhoods"
-• "Show me the best value properties for STR investing"
-• "What are the market trends in Miami Beach?"
-
-What specific analysis would you like me to perform with the available property data?`;
 }
 
 serve(handler);
