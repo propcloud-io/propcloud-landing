@@ -74,7 +74,7 @@ const handler = async (req: Request): Promise<Response> => {
       console.log("No relevant properties found with vector search");
       return new Response(
         JSON.stringify({ 
-          message: "I don't have enough relevant property data to answer your question confidently. Could you ask about a specific property or provide more details about what you're looking for?" 
+          response: "I don't have enough relevant property data to answer your question confidently. Could you ask about a specific property or provide more details about what you're looking for?" 
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -91,7 +91,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Gemini response received");
 
     return new Response(
-      JSON.stringify({ message: geminiResponse }),
+      JSON.stringify({ response: geminiResponse }),
       { 
         status: 200, 
         headers: { ...corsHeaders, "Content-Type": "application/json" } 
