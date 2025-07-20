@@ -64,16 +64,14 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Processing user query:", message);
 
-    // Step 1: Generate query embedding using a simple approach
-    // For now, we'll get relevant properties based on keyword matching and content
-    // In production, you'd use a proper embedding model here
+    // Step 1: Generate query embedding using Hugging Face transformers
     const queryEmbedding = await generateQueryEmbedding(message);
     
-    // Step 2: Perform semantic search on properties
-    const relevantProperties = await findRelevantProperties(supabase, message, queryEmbedding);
+    // Step 2: Perform semantic vector search on properties
+    const relevantProperties = await findRelevantPropertiesVector(supabase, queryEmbedding);
     
     if (!relevantProperties || relevantProperties.length === 0) {
-      console.log("No relevant properties found");
+      console.log("No relevant properties found with vector search");
       return new Response(
         JSON.stringify({ 
           message: "I don't have enough relevant property data to answer your question confidently. Could you ask about a specific property or provide more details about what you're looking for?" 
@@ -82,7 +80,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    console.log(`Found ${relevantProperties.length} relevant properties`);
+    console.log(`Found ${relevantProperties.length} relevant properties using vector search`);
 
     // Step 3: Construct the Master Prompt for Gemini
     const masterPrompt = constructMasterPrompt(message, relevantProperties);
@@ -113,85 +111,79 @@ const handler = async (req: Request): Promise<Response> => {
 };
 
 async function generateQueryEmbedding(query: string): Promise<number[]> {
-  // Simplified approach - in production you'd use a proper embedding model
-  // For now, we'll return a simple representation
-  const words = query.toLowerCase().split(' ');
-  const embedding = new Array(384).fill(0);
-  
-  // Simple hash-based embedding for demonstration
-  words.forEach((word, index) => {
-    const hash = simpleHash(word);
-    embedding[hash % 384] += 1;
-  });
-  
-  return embedding;
-}
-
-function simpleHash(str: string): number {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32-bit integer
-  }
-  return Math.abs(hash);
-}
-
-async function findRelevantProperties(supabase: any, query: string, embedding: number[]): Promise<Property[]> {
   try {
-    // For now, we'll use text-based search combined with the most complete properties
-    // This is a simplified approach while we build out the full vector search
+    console.log("Generating embedding for query:", query);
     
-    const queryLower = query.toLowerCase();
-    const searchTerms = [
-      'ocean drive', 'collins', 'brickell', 'wynwood', 'coral gables',
-      'roi', 'return', 'investment', 'cash flow', 'market', 'price',
-      'bed', 'bath', 'sqft', 'square feet'
-    ];
+    // Use Hugging Face Inference API for sentence transformers
+    const response = await fetch(
+      "https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          inputs: query,
+          options: { wait_for_model: true }
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      console.error(`Hugging Face API error: ${response.status} ${response.statusText}`);
+      throw new Error(`Hugging Face API failed: ${response.status}`);
+    }
+
+    const embedding = await response.json();
     
-    // Find properties that match search terms or get top properties with complete data
+    // The API returns the embedding directly as an array
+    if (Array.isArray(embedding) && embedding.length > 0) {
+      console.log("Successfully generated query embedding");
+      return embedding;
+    } else {
+      throw new Error("Invalid embedding format received");
+    }
+  } catch (error) {
+    console.error("Error generating query embedding:", error);
+    throw error;
+  }
+}
+
+async function findRelevantPropertiesVector(supabase: any, queryEmbedding: number[]): Promise<Property[]> {
+  try {
+    console.log("Performing vector similarity search...");
+    
+    // Use pgvector cosine similarity search
     const { data: properties, error } = await supabase
-      .from("properties")
-      .select("*")
-      .not('market_comps', 'is', null)
-      .not('listing_price', 'is', null)
-      .limit(5);
+      .rpc('match_properties', {
+        query_embedding: queryEmbedding,
+        match_threshold: 0.3,
+        match_count: 3
+      });
 
     if (error) {
-      console.error("Error fetching properties:", error);
-      return [];
+      console.error("Error in vector search:", error);
+      // Fallback to regular query if vector search fails
+      console.log("Falling back to regular property query...");
+      const { data: fallbackProperties, error: fallbackError } = await supabase
+        .from("properties")
+        .select("*")
+        .not('embedding', 'is', null)
+        .limit(3);
+      
+      if (fallbackError) {
+        console.error("Fallback query also failed:", fallbackError);
+        return [];
+      }
+      
+      return fallbackProperties || [];
     }
 
-    if (!properties || properties.length === 0) {
-      return [];
-    }
-
-    // Score properties based on relevance to query
-    const scoredProperties = properties.map((prop: Property) => {
-      let score = 0;
-      const propText = `${prop.address} ${prop.description || ''}`.toLowerCase();
-      
-      // Check for direct matches
-      searchTerms.forEach(term => {
-        if (queryLower.includes(term) && propText.includes(term)) {
-          score += 2;
-        }
-      });
-      
-      // Boost properties with more complete data
-      if (prop.market_comps && prop.sales_history) score += 1;
-      if (prop.tax_history && prop.permit_history) score += 1;
-      
-      return { ...prop, relevanceScore: score };
-    });
-
-    // Sort by relevance score and return top 3
-    return scoredProperties
-      .sort((a, b) => b.relevanceScore - a.relevanceScore)
-      .slice(0, 3);
-      
+    console.log(`Vector search returned ${properties?.length || 0} properties`);
+    return properties || [];
+    
   } catch (error) {
-    console.error("Error in findRelevantProperties:", error);
+    console.error("Error in findRelevantPropertiesVector:", error);
     return [];
   }
 }
